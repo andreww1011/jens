@@ -1,0 +1,7 @@
+<#if licenseFirst??>
+${licenseFirst}
+</#if>
+${licensePrefix}Copyright (c) 2018 to present, Andrew Wagner. All rights reserved.
+<#if licenseLast??>
+${licenseLast}
+</#if>
