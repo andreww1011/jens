@@ -1,10 +1,25 @@
 /*
- * Copyright (c) 2018 to present, Andrew Wagner. All rights reserved.
+ * jens - (J)ava (EN)umerable (S)ubsets
+ * Copyright (C) 2022 andreww1011
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.jamw.jens;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -24,7 +39,7 @@ import net.bytebuddy.matcher.ElementMatchers;
 
 /**
  *
- * @author Andrew
+ * 
  */
 public abstract class Enumerables {
     
@@ -33,26 +48,24 @@ public abstract class Enumerables {
     private static final Map<Class<? extends Enumerable<?>>,Object> ENUMERABLES;
     
     static {
-        ENUMERABLES = new WeakHashMap<>();
-        
+        ENUMERABLES = Collections.synchronizedMap(new WeakHashMap<>());
     }
     
+    @SuppressWarnings("unchecked")
     public static final
     <E extends Enumerable<E>>
     E getEnumerable(Class<E> enumerable) {
-        if (ENUMERABLES.containsKey(enumerable))
-            return (E)ENUMERABLES.get(enumerable);
-        else {
-            E dynEnumerable = createEnumerable(enumerable);
-            ENUMERABLES.put(enumerable,dynEnumerable);
-            return dynEnumerable;
-        }
+        E e = (E)ENUMERABLES.get(enumerable);
+        if (e != null)    
+            return e;
+        ENUMERABLES.putIfAbsent(enumerable,createEnumerable(enumerable));
+        return (E)ENUMERABLES.get(enumerable);
     }
     
     private static final String DYNAMIC_CLASS_NAME_SUFFIX = "_EnumerableDynImpl";
     private static final ClassLoader DEFAULT_CLASS_LOADER = Enumerables.class.getClassLoader();
     
-    private static final 
+    private static 
     <E extends Enumerable<E>>
     E createEnumerable(Class<E> enumerableClass) {
         checkIsInterface(enumerableClass);
@@ -107,9 +120,7 @@ public abstract class Enumerables {
         if (m[0].getParameterCount() != 0)
             return false;
         Class<?> r = m[0].getReturnType();
-        if (!r.isAssignableFrom(Item.class))
-            return false;
-        return true;
+        return r.isAssignableFrom(Item.class);
     }
 
     private static List<Class<?>> getNonEnumerableInterfaces(List<Class<?>> allInterfaces, List<Class<?>> itemInterfaces) {
@@ -159,20 +170,18 @@ public abstract class Enumerables {
     <E extends Enumerable<E>>
     E tryCreateDynamicInstance(Class<E> enumerableClass, 
                                List<Class<?>> itemInterfaces) {
-        E instance;
         try {
-            instance = createDynamicInstance(enumerableClass,itemInterfaces);
-        } catch (InstantiationException | IllegalAccessException ex) {
+            return createDynamicInstance(enumerableClass,itemInterfaces);
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
             throw new RuntimeException(ex);
         }
-        return instance;
     }
 
     private static
     <E extends Enumerable<E>>
     E createDynamicInstance(Class<E> enumerableClass,
                             List<Class<?>> itemInterfaces) 
-            throws InstantiationException, IllegalAccessException {
+            throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         ClassLoader classLoader = DEFAULT_CLASS_LOADER;
         ClassLoadingStrategy<ClassLoader> classLoadingStrategy = ClassLoadingStrategy.Default.WRAPPER;
         String className = enumerableClass.getName() + DYNAMIC_CLASS_NAME_SUFFIX;
@@ -198,6 +207,7 @@ public abstract class Enumerables {
         return builder.make()
                 .load(classLoader,classLoadingStrategy)
                 .getLoaded()
+                .getDeclaredConstructor()
                 .newInstance();
     }
     
@@ -220,13 +230,15 @@ public abstract class Enumerables {
     <E extends Enumerable<E>> 
     extends Item<E>
     {
+        private final Class<E> enumerableClass;
         private final String name,toString,description;
         private final int ordinal;
 
-        private ItemImpl(final Class<?> enumerableClass, 
+        private ItemImpl(final Class<E> enumerableClass, 
                          final String name, 
                          final String desciription,
                          final int ordinal) {
+            this.enumerableClass = enumerableClass;
             this.name = name;
             this.toString = buildToString(enumerableClass,name);
             this.description = desciription;
@@ -237,6 +249,15 @@ public abstract class Enumerables {
         <E extends Enumerable<E>>
         String buildToString(final Class<?> enumerableClass, final String name) {
             return enumerableClass.getSimpleName() + ":" + name;
+        }
+        
+        private E enumerable;
+        
+        @Override
+        public final E enumerable() {
+            if (enumerable == null)
+                enumerable = getEnumerable(enumerableClass);
+            return enumerable;
         }
 
         @Override

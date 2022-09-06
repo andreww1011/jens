@@ -1,21 +1,32 @@
 /*
- * Copyright (c) 2018 to present, Andrew Wagner. All rights reserved.
+ * jens - (J)ava (EN)umerable (S)ubsets
+ * Copyright (C) 2022 andreww1011
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.jamw.jens;
 
 import java.util.List;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertSame;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  *
- * @author Andrew
+ * 
  */
 public class EnumerablesTest {
     
@@ -25,24 +36,12 @@ public class EnumerablesTest {
     public EnumerablesTest() {
     }
     
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() {
         ALL_ITEMS_STATIC = Enumerables.getEnumerable(AllItems.class);
         EVEN_ITEMS_STATIC = Enumerables.getEnumerable(EvenItems.class);
     }
     
-    @AfterClass
-    public static void tearDownClass() {
-    }
-    
-    @Before
-    public void setUp() {
-    }
-    
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void Enumerables_AllItems_Test() {
         //test instance

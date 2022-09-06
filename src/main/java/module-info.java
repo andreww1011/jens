@@ -15,17 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.jamw.jens;
 
-import java.util.List;
-
-/**
- *
- * 
- */
-public interface Enumerable<E extends Enumerable<E>> {
-    
-    List<Item<E>> items(); 
-    
-    int size();
+module com.jamw.jens {
+    requires transitive net.bytebuddy;
+    exports com.jamw.jens;
 }
