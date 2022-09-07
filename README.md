@@ -3,7 +3,7 @@ Java library for defining and using subsets.  Simulate `enum` with common consta
 
 ## Usage
 
-1. Define each element of a set in its own interface annotated with `@EnumeratedItem`, parameterized with `<E extends Enumerable<E>>`, and that has a member that returns the type `Item<E>` 
+1. Define each element of a set in its own interface annotated with `@EnumeratedItem`, parameterized with `<E extends Enumerable<E>>`, and that has a member that returns the type `Item<E>`. 
 
 ```java
 @EnumeratedItem(description="translation in x")
